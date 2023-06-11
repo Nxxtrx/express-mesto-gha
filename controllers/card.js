@@ -22,8 +22,17 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => new Error('Not found'))
     .then((card) => res.send(card))
-    .catch(() => res.status(404).send({ message: 'Карточка с указанным _id не найдена' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Переданы некорректные данные для удаления карточки' });
+      } else if (err.message === 'Not found') {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      }
+    });
 };
 
 const likeCard = (req, res) => {
@@ -31,11 +40,12 @@ const likeCard = (req, res) => {
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
-  ).then((card) => res.send(card))
+  ).orFail(() => new Error('Not found'))
+    .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(400).send({ message: 'Переданы некорректные данные для постановки лайка' });
-      } else if (err.name === 'CastError') {
+      } else if (err.message === 'Not found') {
         res.status(404).send({ message: 'Передан несуществующий _id карточки' });
       } else {
         res.status(500).send({ message: 'Внутренняя ошибка сервера' });
@@ -48,11 +58,12 @@ const dislikeCard = (req, res) => {
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
-  ).then((card) => res.send(card))
+  ).orFail(() => new Error('Not found'))
+    .then((card) => res.send(card))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         res.status(400).send({ message: 'Переданы некорректные данные для снятия лайка' });
-      } else if (err.name === 'CastError') {
+      } else if (err.message === 'Not found') {
         res.status(404).send({ message: 'Передан несуществующий _id карточки' });
       } else {
         res.status(500).send({ message: 'Внутренняя ошибка сервера' });
