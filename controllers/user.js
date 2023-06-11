@@ -18,4 +18,26 @@ const createUser = (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
-module.exports = { getUser, getUserById, createUser };
+const updateUser = (req, res) => {
+  const { name, about } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  ).then((user) => res.send(user))
+    .catch((err) => res.status(404).send({ message: err.message }));
+};
+
+const updateAvatarUser = (req, res) => {
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  ).then((user) => res.send(user))
+    .catch((err) => res.status(404).send({ message: err.message }));
+};
+
+module.exports = {
+  getUser, getUserById, createUser, updateUser, updateAvatarUser,
+};
