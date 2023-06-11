@@ -3,19 +3,31 @@ const User = require('../models/user');
 const getUser = (req, res) => {
   User.find({})
     .then((user) => res.send(user))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch(() => res.status(500).send({ message: 'Внутренняя ошибка сервера' }));
 };
 
 const getUserById = (req, res) => {
   User.findById(req.params.id)
     .then((user) => res.send(user))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      }
+    });
 };
 
 const createUser = (req, res) => {
   User.create(req.body)
     .then((user) => res.status(201).send(user))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
+      } else {
+        res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      }
+    });
 };
 
 const updateUser = (req, res) => {
@@ -25,7 +37,15 @@ const updateUser = (req, res) => {
     { name, about },
     { new: true, runValidators: true },
   ).then((user) => res.send(user))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при обновления профиля' });
+      } else if (err.name === 'CastError') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      }
+    });
 };
 
 const updateAvatarUser = (req, res) => {
@@ -35,7 +55,15 @@ const updateAvatarUser = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   ).then((user) => res.send(user))
-    .catch((err) => res.status(404).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Переданы некорректные данные при обновления аватара' });
+      } else if (err.name === 'CastError') {
+        res.status(404).send({ message: 'Пользователь с указанным _id не найден' });
+      } else {
+        res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      }
+    });
 };
 
 module.exports = {
