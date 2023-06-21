@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
   },
   about: {
     type: String,
-    defailt: 'Исследователь',
+    default: 'Исследователь',
     minlength: 2,
     maxlength: 30,
   },

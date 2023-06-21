@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const UnauthorizedError = require('../errors/UnauthorizedError');
 
 const handleAuthError = (res) => {
   res.status(401).send({ message: 'Необходима авторизация' });
@@ -10,7 +11,7 @@ const auth = (req, res, next) => {
   const { cookie } = req.headers;
 
   if (!cookie || !(cookie.startsWith('jwt='))) {
-    return handleAuthError(res);
+    throw new UnauthorizedError('Необходима авторизация');
   }
 
   const token = extractBearerToken(cookie);
@@ -19,7 +20,7 @@ const auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'SUPER_PASSWORD');
   } catch (err) {
-    return handleAuthError(res);
+    throw new UnauthorizedError('Необходима авторизация');
   }
 
   req.user = payload;
