@@ -1,3 +1,5 @@
+const jsonWebToken = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const {
   BAD_REQUEST_ERROR, NOT_FOUND_ERROR, INTERNAL_SERVER_ERROR,
@@ -24,9 +26,16 @@ const getUserById = (req, res) => {
     });
 };
 
-const createUser = (req, res) => {
-  User.create(req.body)
-    .then((user) => res.status(201).send(user))
+const createUser = (req, res, next) => {
+  const { password } = req.body;
+  bcrypt.hash(String(password), 10)
+    .then((hashedPassword) => {
+      User.create({ ...req.body, password: hashedPassword })
+        .then((user) => {
+          res.status(201).send(user);
+        })
+        .catch(next);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные при создании пользователя' });
@@ -34,6 +43,33 @@ const createUser = (req, res) => {
         res.status(INTERNAL_SERVER_ERROR).send({ message: 'Внутренняя ошибка сервера' });
       }
     });
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .select('+password')
+    .then((user) => {
+      bcrypt.compare(String(password), user.password)
+        .then((isValidUser) => {
+          if (isValidUser) {
+            const jwt = jsonWebToken.sign({
+              _id: user._id,
+            }, 'SUPER_PASSWORD');
+
+            res.cookie('jwt', jwt, {
+              maxAge: 360000,
+              httpOnly: true,
+              sameSite: true,
+            });
+            res.send(user);
+          } else {
+            res.status(401).send({ message: 'Неправильный пароль' });
+          }
+        })
+        .catch(next);
+    })
+    .catch(next);
 };
 
 const updateUser = (req, res) => {
@@ -45,7 +81,6 @@ const updateUser = (req, res) => {
   ).orFail(() => new Error('Not found'))
     .then((user) => res.send(user))
     .catch((err) => {
-      console.log(err.name);
       if (err.name === 'ValidationError') {
         res.status(BAD_REQUEST_ERROR).send({ message: 'Переданы некорректные данные при обновления профиля' });
       } else if (err.message === 'Not found') {
@@ -76,5 +111,5 @@ const updateAvatarUser = (req, res) => {
 };
 
 module.exports = {
-  getUser, getUserById, createUser, updateUser, updateAvatarUser,
+  getUser, getUserById, createUser, updateUser, updateAvatarUser, login,
 };
