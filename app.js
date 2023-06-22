@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const { errors } = require('celebrate');
 const router = require('./routes/index');
 const errorHandler = require('./middlwares/error');
 
@@ -17,6 +18,7 @@ app.use(bodyParser.json());
 
 app.use(router);
 
+app.use(errors());
 app.use(errorHandler);
 
 app.listen(3000);
