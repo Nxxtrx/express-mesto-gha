@@ -65,7 +65,7 @@ const login = (req, res, next) => {
             }, 'SUPER_PASSWORD');
 
             res.cookie('jwt', jwt, {
-              maxAge: 360000,
+              maxAge: 3600 * 24 * 7,
               httpOnly: true,
               sameSite: true,
             });
