@@ -37,8 +37,9 @@ const deleteCard = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Переданы некорректные данные для удаления карточки'));
+      } else {
+        next(err);
       }
-      return next(err);
     });
 };
 

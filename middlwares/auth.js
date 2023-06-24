@@ -7,7 +7,7 @@ const auth = (req, res, next) => {
   const { cookie } = req.headers;
 
   if (!cookie || !(cookie.startsWith('jwt='))) {
-    throw new UnauthorizedError('Необходима авторизация');
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 
   const token = extractJwtToken(cookie);
@@ -16,7 +16,7 @@ const auth = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'SUPER_PASSWORD');
   } catch (err) {
-    throw new UnauthorizedError('Необходима авторизация');
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 
   req.user = payload;

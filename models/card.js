@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { regexImageLink } = require('../utils/constants');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -10,6 +11,10 @@ const cardSchema = new mongoose.Schema({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator: (v) => regexImageLink.test(v),
+      message: 'Неправильный формат ссылки картинки',
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -19,7 +24,7 @@ const cardSchema = new mongoose.Schema({
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'user',
-    default: undefined,
+    default: [],
   }],
   createdAt: {
     type: Date,

@@ -69,7 +69,19 @@ const login = (req, res, next) => {
               httpOnly: true,
               sameSite: true,
             });
-            res.send(user);
+            const {
+              _id,
+              name,
+              about,
+              avatar,
+            } = user;
+            res.send({
+              _id,
+              name,
+              about,
+              avatar,
+              email,
+            });
           } else {
             throw new UnauthorizedError('Неправильный логин или пароль');
           }
